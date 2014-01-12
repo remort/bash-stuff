@@ -1,0 +1,34 @@
+#!/bin/bash
+
+LOG='/tmp/xfcecustoms.log'
+
+function main(){
+	# для очистки всех опций
+	date
+	echo 'flush layouts'
+	setxkbmap -layout 'us,ru' -option ''
+	
+	# для добавления опции переключения по нужным клавишам
+	echo 'set new layouts'
+	setxkbmap -layout 'us,ru' -option 'grp:lctrl_lshift_toggle,compose:ralt,grp_led:scroll'
+	
+	# пусть эти файлы будут в tmpfs
+	echo 'link xsession-errors to tmpfs'
+	ln -sf $(mktemp) /home/remort/.xsession-errors
+	ln -sf $(mktemp) /home/remort/.xsession-errors.old
+	
+	#поменяем = на -
+	echo 'remap some keys'
+	xmodmap -e "keycode 21 = minus underscore minus"
+	xmodmap -e "keycode 20 = equal plus equal"
+	
+	#xneur
+	for i in $(pidof xneur); do
+	  kill -9 $i &
+	done
+	xneur &
+	#коннектилка к ideco
+	#sudo openvt -c 8 -- /bin/pptpconnect
+}
+
+main >> $LOG
